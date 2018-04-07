@@ -19,33 +19,77 @@ int *q1;
 int *q2;
 int main()
 {
-	printf("Enter number of Processes:");
-	scanf("%d",&process_count);
+	int temp;
+	while(1)
+	{
+		printf("Enter number of Processes:");
+		scanf("%d",&temp);
+		if(temp>0)
+		{
+			process_count=temp;
+			break;
+		}
+		else
+		{
+			printf("Error:Only enter positive number greater than 0.\n\n");
+		}
+	}
 	p1=(struct process_q1*)malloc(sizeof(struct process_q1)*process_count);
 	q1=(int*)malloc(sizeof(int)*process_count);
 	q2=(int*)malloc(sizeof(int)*process_count);
 	burst=(int*)malloc(sizeof(int)*process_count);	
-	printf("\n\t\tDetails of Process\n");
+	printf("\n\t\tDetails of Processes\n");
 	for(int i=0;i<process_count;i++)
 	{
 		p1[i].pid=i+1;
-		printf("\nEnter Arrival time of Process %d:",i+1);
-		scanf("%d",&p1[i].a_time);
-		printf("Enter Burst time of Process %d:",i+1);
-		scanf("%d",&p1[i].b_time);
+		while(1)
+		{
+			printf("\nEnter Arrival time of Process %d:",i+1);
+			scanf("%d",&temp);
+			if(temp>=0)
+			{
+				p1[i].a_time=temp;
+				break;
+			}
+			else
+			{
+				printf("Error:Only enter positive numbers.\n");
+			}
+		}
+		while(1)
+		{
+			printf("Enter Burst time of Process %d:",i+1);
+			scanf("%d",&temp);
+			if(temp>0 && temp%2==0)
+			{
+				p1[i].b_time=temp;
+				break;
+			}
+			else
+			{
+				printf("Error:Only enter positive numbers more than 0 which are multiples of 2.\n\n");
+			}
+		}
 		burst[i]=p1[i].b_time;
-		printf("Enter Priority of Process %d:",i+1);
-		scanf("%d",&p1[i].priority);
+		while(1)
+		{
+			printf("Enter Priority of Process %d:",i+1);
+			scanf("%d",&temp);
+			if(temp>=0)
+			{
+				p1[i].priority=temp;
+				break;
+			}
+			else
+			{
+				printf("Error:Only enter positive numbers.\n\n");
+			}
+		}
 		p1[i].wait_time=0;
 	}
-	/*for(int i=0;i<process_count;i++)
-	{
-		printf("\n%d %d %d %d",p1[i].pid,p1[i].a_time,p1[i].b_time,p1[i].priority);
-	}
-	for(int i=0;i<process_count;i++)
-	printf("%d ",burst[i]);*/
 	display();
 	free(p1);
 	free(q1);
-	free(burst);	
+	free(burst);
+	free(q2);	
 }
