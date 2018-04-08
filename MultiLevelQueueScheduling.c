@@ -18,6 +18,145 @@ int *burst;								//temp burst time storage
 int *q1;
 int *q2;
 
+void insert1(int process_id)
+{
+	q1[++queue1_size]=process_id;
+}
+
+void insert2(int process_id)
+{
+	q2[++queue2_size]=process_id;
+}
+
+void delete1(int process_id)
+{
+	int i;
+	for(i=0;i<=queue1_size;i++)
+	{
+		if(q1[i]==process_id)
+		break;
+	}
+	for(int j=i;j<=queue1_size-1;j++)
+	{
+		q1[j]=q1[j+1];
+	}
+	queue1_size--;
+}
+
+void delete2(int process_id)
+{
+	int i;
+	for(i=0;i<=queue2_size;i++)
+	{
+		if(q2[i]==process_id)
+		break;
+	}
+	for(int j=i;j<=queue2_size-1;j++)
+	{
+		q2[j]=q2[j+1];
+	}
+	queue2_size--;
+}
+
+void wait(int process_id)
+{
+	for(int i=0;i<=queue1_size;i++)
+	{
+		if(process_id!=q1[i])
+		{
+			p1[q1[i]-1].wait_time++;			//incrementing wait time of processes in the queue.
+		}
+	}
+	for(int j=0;j<=queue2_size;j++)
+	{
+		p1[q2[j]-1].wait_time++;
+	}	
+}
+
+void wait2(int process_id)
+{
+	for(int i=0;i<=queue2_size;i++)
+	{
+		if(process_id!=q2[i])
+		{
+			p1[q2[i]-1].wait_time+=1;			//incrementing wait time of processes in the queue.
+		}
+	}
+}
+
+int process_arrival(int time)
+{
+	int *id=(int*)malloc(sizeof(int)*process_count);	//array to store processes arriving at same time
+	int pos=-1;
+	for(int i=0;i<process_count;i++)
+	{
+		if(p1[i].a_time==time)
+		{
+			id[++pos]=p1[i].pid;
+			insert1(id[pos]);
+		}
+	}
+	if(pos==-1)
+	{						//no process
+		return 0;
+	}				
+	else if(pos==0)						//only one process
+	{	
+		return id[pos];
+	}
+	else							//more than one process at given time
+	{
+		int max_p=id[0];
+		for(int i=1;i<=pos;i++)
+		{
+			if(p1[id[i]-1].priority<p1[max_p-1].priority)		//checking priority
+			{
+				max_p=id[i];
+			}
+		}
+		return max_p;
+	}
+}
+
+int process_arrival2(int time)
+{
+	int i=0;
+	int id=0;
+	for(;i<process_count;i++)
+	{
+		if(time==p1[i].a_time)
+		{
+			id=p1[i].pid;
+		}
+	}
+	return id;
+}
+
+int allocate_p()
+{
+	if(queue1_size==0)			//if only one process in queue
+	return q1[0];
+	else
+	{
+		int max_p=q1[0];
+		for(int i=1;i<=queue1_size;i++)
+		{
+			if(p1[q1[i]-1].priority<p1[max_p-1].priority)
+			{
+				max_p=q1[i];
+			}
+			else if(p1[q1[i]-1].priority==p1[max_p-1].priority)		//checking arrival time of equal priority processes
+			{
+				if(p1[q1[i]-1].a_time<p1[max_p-1].a_time)
+				{
+					max_p=q1[i];
+				}
+			}	
+		}
+		return max_p;
+	}
+}
+
 int round_robin(int time,int flag)
 {
 	int time_q=2;
@@ -111,6 +250,31 @@ int preemptive()
 	return time;
 }
 
+void display()
+{
+	int time=preemptive();
+	float avg_wait_time,avg_turnaround_time;
+	int wait_s=0,turn_s=0;
+	if(queue2_size!=-1)
+		time=round_robin(time,0);
+	printf("\nPID\tPriority\tArrival Time\tBurst Time\tWaiting Time\tTurnaround Time");
+	for(int i=0;i<process_count;i++)
+	{
+		p1[i].turnaround_time=p1[i].b_time+p1[i].wait_time;	
+		printf("\n%-8d%-16d%-16d%-16d%-16d%d",p1[i].pid,p1[i].priority,p1[i].a_time,p1[i].b_time,p1[i].wait_time,p1[i].turnaround_time);
+	}
+	printf("\n\nTotal CPU time used(including idle time):%d",time);
+	for(int i=0;i<process_count;i++)
+	{
+		wait_s+=p1[i].wait_time;
+		turn_s+=p1[i].turnaround_time;
+	}
+	avg_wait_time=wait_s*1.0/process_count;
+	avg_turnaround_time=turn_s*1.0/process_count;	
+	printf("\nAverage Waiting time:%.3f",avg_wait_time);
+	printf("\nAverage Turnaround time:%.3f",avg_turnaround_time);
+	printf("\n");
+}
 int main()
 {
 	int temp;
