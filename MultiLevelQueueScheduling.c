@@ -18,6 +18,43 @@ int *burst;								//temp burst time storage
 int *q1;
 int *q2;
 
+int round_robin(int time,int flag)
+{
+	int time_q=2;
+	static int counter=0;
+	static int i=0;
+	while(queue2_size>-1)
+	{
+		if(flag==1)
+		{
+			int new_id=process_arrival2(time);
+			if(new_id!=0)
+			{
+				return time;
+			}
+		}
+		
+		if (counter==time_q)
+		{
+			if(i==queue2_size)
+			{
+				i=0;
+			}
+			else
+			i++;
+		}
+		time+=1;
+		burst[q2[i]-1]-=1;
+		wait2(q2[i]);
+		if(burst[q2[i]-1]==0)
+		{
+			delete2(q2[i]);
+			counter=0;
+		}	
+	}
+	return time;
+}
+
 int preemptive()
 {
 	int temp_process_count=process_count;
@@ -93,7 +130,7 @@ int main()
 	}
 	p1=(struct process_q1*)malloc(sizeof(struct process_q1)*process_count);
 	q1=(int*)malloc(sizeof(int)*process_count);
-	q2=(int*)malloc(sizeof(int)*process_count);
+	q2=(int*)malloc(sizeof(int)*(process_count-1));
 	burst=(int*)malloc(sizeof(int)*process_count);	
 	printf("\n\t\tDetails of Processes\n");
 	for(int i=0;i<process_count;i++)
