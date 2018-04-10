@@ -4,6 +4,7 @@
 int process_count;							//total process count
 int queue1_size=-1;
 int queue2_size=-1;
+int queue2_process_count=0;
 
 struct process_q1{
 int pid;
@@ -43,15 +44,10 @@ void delete1(int process_id)
 	queue1_size--;
 }
 
-void delete2(int process_id)
+void delete2()
 {
-	int i;
-	for(i=0;i<=queue2_size;i++)
-	{
-		if(q2[i]==process_id)
-		break;
-	}
-	for(int j=i;j<=queue2_size-1;j++)
+	int j;
+	for(int j=0;j<=queue2_size-1;j++)
 	{
 		q2[j]=q2[j+1];
 	}
@@ -73,14 +69,11 @@ void wait(int process_id)
 	}	
 }
 
-void wait2(int process_id)
+void wait2()
 {
 	for(int i=0;i<=queue2_size;i++)
-	{
-		if(process_id!=q2[i])
-		{
-			p1[q2[i]-1].wait_time+=1;			//incrementing wait time of processes in the queue.
-		}
+	{	
+		p1[q2[i]-1].wait_time+=1;			//incrementing wait time of processes in the queue.
 	}
 }
 
@@ -160,35 +153,43 @@ int allocate_p()
 int round_robin(int time,int flag)
 {
 	int time_q=2;
-	static int counter=0;
-	static int i=0;
-	while(queue2_size>-1)
+	int counter=0;
+	int run_id=0;
+	static int finish_process=0;
+	while(finish_process!=queue2_process_count)
 	{
 		if(flag==1)
 		{
 			int new_id=process_arrival2(time);
 			if(new_id!=0)
 			{
+				if(run_id!=0)
+				{
+					insert2(run_id);
+				}
 				return time;
 			}
 		}
-		
-		if (counter==time_q)
+		if(run_id==0)
 		{
-			if(i==queue2_size)
-			{
-				i=0;
-			}
-			else
-			i++;
+			run_id=q2[0];
+			delete2();
 		}
 		time+=1;
-		burst[q2[i]-1]-=1;
-		wait2(q2[i]);
-		if(burst[q2[i]-1]==0)
+		burst[run_id-1]-=1;
+		wait2();
+		counter+=1;
+		if(burst[run_id-1]==0)
 		{
-			delete2(q2[i]);
+			finish_process++;
+			run_id=0;
 			counter=0;
+		}
+		else if(counter==time_q)
+		{
+			insert1(run_id);
+			counter=0;
+			run_id=0;
 		}	
 	}
 	return time;
@@ -212,6 +213,7 @@ int preemptive()
 				{
 					delete1(run_id);
 					insert2(run_id);			//swap into queue2
+					queue2_process_count++;
 					run_id=new_id;
 					temp_process_count--;
 				}
